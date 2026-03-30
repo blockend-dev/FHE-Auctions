@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { formatEther } from "viem";
 import { usePlaceBid } from "../hooks/useAuction";
-import { EncryptionSteps } from "./EncryptionSteps";
+import dynamic from "next/dynamic";
+
+const EncryptionSteps = dynamic(() => import("./EncryptionSteps").then(mod => mod.EncryptionSteps), { ssr: false });
 
 interface Props {
   auctionId: bigint;

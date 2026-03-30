@@ -6,8 +6,10 @@ import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { Clock, Tag, User, ShieldCheck, Gavel, RefreshCw, Lock } from "lucide-react";
 import { useAuctionInfo, useHasBid, useEscrow, useClaimRefund } from "../hooks/useAuction";
-import { BidModal } from "./BidModal";
+import dynamic from "next/dynamic";
 import clsx from "clsx";
+
+const BidModal = dynamic(() => import("./BidModal").then(mod => mod.BidModal), { ssr: false });
 
 interface Props {
   auctionId: bigint;
@@ -55,7 +57,7 @@ export function AuctionCard({ auctionId, index }: Props) {
   const [seller, itemName, , , highestBidder, settled, minBidWei] = info;
   const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
   const isWinner = address && highestBidder.toLowerCase() === address.toLowerCase();
-  const canRefund = settled && !isWinner && escrow && escrow > 0n;
+  const canRefund = settled && !isWinner && escrow && escrow > BigInt(0);
   const isLive = !settled && !ended;
 
   const statusBadge = settled

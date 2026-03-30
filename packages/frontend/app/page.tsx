@@ -8,9 +8,11 @@ import { Plus, ExternalLink } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useAuctionCount } from "../hooks/useAuction";
 import { AuctionCard } from "../components/AuctionCard";
-import { CreateAuctionModal } from "../components/CreateAuctionModal";
+import dynamicImport from "next/dynamic";
 import { WalletButton } from "../components/WalletButton";
 import { HeroSection } from "../components/HeroSection";
+
+const CreateAuctionModal = dynamicImport(() => import("../components/CreateAuctionModal").then(mod => mod.CreateAuctionModal), { ssr: false });
 
 export default function Home() {
   const { isConnected } = useAccount();
