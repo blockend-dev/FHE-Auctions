@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@plugin "@tailwindcss/postcss";
-
 @theme {
   --color-brand-purple: #8b5cf6;
   --color-brand-cyan: #22d3ee;
@@ -94,13 +92,9 @@ body {
 /* ── Glassmorphism ─────────────────────────────────────────────────────── */
 
 @layer components {
-  .glass {
-    @apply backdrop-blur-2xl border border-white/[0.07] shadow-glass;
-    background: rgba(255, 255, 255, 0.03);
-  }
-
   .glass-card {
-    @apply glass rounded-2xl p-6 transition-all duration-300;
+    @apply backdrop-blur-2xl border border-white/[0.07] shadow-glass rounded-2xl p-6 transition-all duration-300;
+    background: rgba(255, 255, 255, 0.03);
   }
 
   .glass-card:hover {
@@ -110,7 +104,7 @@ body {
   }
 
   .glass-modal {
-    @apply glass rounded-3xl p-8;
+    @apply backdrop-blur-2xl border border-white/[0.07] shadow-glass rounded-3xl p-8;
     background: rgba(10, 10, 20, 0.85);
   }
 
