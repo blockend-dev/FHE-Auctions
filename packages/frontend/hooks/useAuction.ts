@@ -5,6 +5,9 @@ import { parseEther } from "viem";
 import { useState, useCallback } from "react";
 import { AUCTION_ABI, AUCTION_ADDRESS } from "../lib/contracts";
 import { useEncryptBid } from "./useCofhe";
+import { arbitrumSepolia } from "../lib/wagmi";
+
+const CHAIN_ID = arbitrumSepolia.id;
 
 export function useAuctionInfo(id: bigint) {
   return useReadContract({
@@ -68,6 +71,7 @@ export function usePlaceBid() {
         functionName: "placeBid",
         args: [auctionId, { ctHash: encrypted.ctHash, securityZone: encrypted.securityZone }],
         value: bidWei,
+        chainId: CHAIN_ID,
       });
     },
     [encryptBid, writeContractAsync]
@@ -94,6 +98,7 @@ export function useCreateAuction() {
         abi: AUCTION_ABI,
         functionName: "createAuction",
         args: [itemName, BigInt(durationHours * 3600), parseEther(minBidEth)],
+        chainId: CHAIN_ID,
       });
     },
     [writeContractAsync]
@@ -115,6 +120,7 @@ export function useClaimRefund() {
         abi: AUCTION_ABI,
         functionName: "claimRefund",
         args: [auctionId],
+        chainId: CHAIN_ID,
       });
     },
     [writeContractAsync]
