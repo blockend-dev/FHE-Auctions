@@ -8,6 +8,7 @@ import "@fhenixprotocol/cofhe-contracts/FHE.sol";
  * @notice MEV-protected sealed-bid auction using FHE.
  *         Bids are submitted encrypted and never revealed on-chain.
  *         Only the winner is disclosed at settlement.
+ *
  */
 contract SealedBidAuction {
     struct Auction {
@@ -15,7 +16,7 @@ contract SealedBidAuction {
         string itemName;
         uint256 startTime;
         uint256 endTime;
-        euint256 highestBid;
+        euint128 highestBid;
         address highestBidder;
         bool settled;
         uint256 minBidWei;
@@ -23,9 +24,9 @@ contract SealedBidAuction {
 
     uint256 public auctionCount;
     mapping(uint256 => Auction) public auctions;
-    mapping(address => mapping(uint256 => euint256)) private _bids;
+    mapping(address => mapping(uint256 => euint128)) private _bids;
     mapping(address => mapping(uint256 => bool)) public hasBid;
-    mapping(address => mapping(uint256 => uint256)) private _escrow; // bidder => auctionId => escrowed ETH
+    mapping(address => mapping(uint256 => uint256)) private _escrow;
 
     event AuctionCreated(uint256 indexed id, address seller, string itemName, uint256 endTime);
     event BidPlaced(uint256 indexed id, address indexed bidder);
@@ -68,7 +69,7 @@ contract SealedBidAuction {
             itemName: itemName,
             startTime: block.timestamp,
             endTime: block.timestamp + durationSeconds,
-            highestBid: FHE.asEuint256(0),
+            highestBid: FHE.asEuint128(0),
             highestBidder: address(0),
             settled: false,
             minBidWei: minBidWei
@@ -78,7 +79,7 @@ contract SealedBidAuction {
         emit AuctionCreated(id, msg.sender, itemName, block.timestamp + durationSeconds);
     }
 
-    function placeBid(uint256 id, InEuint256 memory encBid)
+    function placeBid(uint256 id, InEuint128 memory encBid)
         external
         payable
         onlyActive(id)
@@ -86,18 +87,16 @@ contract SealedBidAuction {
         if (msg.value < auctions[id].minBidWei) revert BelowMinBid();
         if (hasBid[msg.sender][id]) revert AlreadyBid();
 
-        euint256 bid = FHE.asEuint256(encBid);
+        euint128 bid = FHE.asEuint128(encBid);
 
         ebool isHigher = FHE.gt(bid, auctions[id].highestBid);
 
-        // Conditionally update highest bid — no plaintext branch leak
         auctions[id].highestBid = FHE.select(isHigher, bid, auctions[id].highestBid);
         FHE.allowThis(auctions[id].highestBid);
 
         _bids[msg.sender][id] = bid;
         FHE.allowSender(_bids[msg.sender][id]);
 
-        // Escrow the ETH so losers can reclaim after settlement
         _escrow[msg.sender][id] = msg.value;
         hasBid[msg.sender][id] = true;
 
@@ -115,7 +114,6 @@ contract SealedBidAuction {
         a.settled = true;
         a.highestBidder = winner;
 
-        // Transfer winner's escrowed ETH to seller
         uint256 winnerEscrow = _escrow[winner][id];
         _escrow[winner][id] = 0;
         (bool ok, ) = a.seller.call{value: winnerEscrow}("");
@@ -124,7 +122,6 @@ contract SealedBidAuction {
         emit AuctionSettled(id, winner);
     }
 
-    /// @notice Losing bidders call this to reclaim their escrowed ETH after settlement
     function claimRefund(uint256 id) external {
         Auction storage a = auctions[id];
         if (!a.settled) revert AuctionNotEnded();

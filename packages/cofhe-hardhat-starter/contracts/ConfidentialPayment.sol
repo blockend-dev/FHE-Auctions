@@ -7,20 +7,16 @@ import "@fhenixprotocol/cofhe-contracts/FHE.sol";
  * @title ConfidentialPayment
  * @notice Confidential ETH payment splitter powered by FHE + Privara patterns.
  *
- *         Use cases:
- *         - Payroll: employer sends total, individual amounts stay encrypted
- *         - Treasury: DAO disbursements without exposing recipient amounts
- *         - Auction settlement: winner pays without revealing bid
  */
 contract ConfidentialPayment {
     struct Payment {
         address sender;
         address recipient;
-        euint256 encAmount;
-        uint256 escrowed;    // actual ETH locked for this payment
+        euint128 encAmount;
+        uint256 escrowed;
         uint256 timestamp;
         bool claimed;
-        bytes32 refHash;     // off-chain reference (keccak of invoice ID, payroll period, etc.)
+        bytes32 refHash;
     }
 
     uint256 public paymentCount;
@@ -37,13 +33,13 @@ contract ConfidentialPayment {
 
     function sendPayment(
         address recipient,
-        InEuint256 memory encAmount,
+        InEuint128 memory encAmount,
         bytes32 refHash
     ) external payable returns (uint256 id) {
         if (msg.value == 0) revert InsufficientValue();
 
         id = paymentCount++;
-        euint256 amount = FHE.asEuint256(encAmount);
+        euint128 amount = FHE.asEuint128(encAmount);
 
         _payments[id] = Payment({
             sender: msg.sender,
@@ -56,7 +52,7 @@ contract ConfidentialPayment {
         });
 
         FHE.allowThis(_payments[id].encAmount);
-        FHE.allow(_payments[id].encAmount, recipient); // only recipient can decrypt their amount
+        FHE.allow(_payments[id].encAmount, recipient);
 
         receivable[recipient].push(id);
         emit PaymentCreated(id, msg.sender, recipient, refHash);
