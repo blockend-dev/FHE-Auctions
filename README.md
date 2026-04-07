@@ -2,8 +2,6 @@
 
 > MEV-Protected Auction + Privacy-by-Design Payment System for Fhenix Buildathon Wave 1
 
-## What's Built
-
 ### Smart Contracts (Solidity)
 
 **1. SealedBidAuction.sol**
