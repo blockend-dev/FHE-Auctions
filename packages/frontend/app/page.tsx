@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, ExternalLink } from "lucide-react";
+import { Plus, ExternalLink, Send } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useAuctionCount } from "../hooks/useAuction";
 import { AuctionCard } from "../components/AuctionCard";
@@ -13,11 +13,14 @@ import { WalletButton } from "../components/WalletButton";
 import { HeroSection } from "../components/HeroSection";
 
 const CreateAuctionModal = dynamicImport(() => import("../components/CreateAuctionModal").then(mod => mod.CreateAuctionModal), { ssr: false });
+const SendPaymentModal = dynamicImport(() => import("../components/SendPaymentModal").then(mod => mod.SendPaymentModal), { ssr: false });
+const PaymentInbox = dynamicImport(() => import("../components/PaymentInbox").then(mod => mod.PaymentInbox), { ssr: false });
 
 export default function Home() {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { data: count, refetch } = useAuctionCount();
   const [showCreate, setShowCreate] = useState(false);
+  const [showSendPayment, setShowSendPayment] = useState(false);
 
   const auctionIds = count
     ? Array.from({ length: Number(count) }, (_, i) => BigInt(i)).reverse()
@@ -108,6 +111,26 @@ export default function Home() {
           )}
         </section>
 
+        {/* Confidential Payments section */}
+        {isConnected && address && (
+          <section className="mt-16">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-white">Confidential Payments</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Send ETH with FHE-encrypted amounts · powered by Privara</p>
+              </div>
+              <button onClick={() => setShowSendPayment(true)} className="btn-emerald flex items-center gap-2">
+                <Send size={15} />
+                Send Private
+              </button>
+            </div>
+
+            <div className="glass-card">
+              <PaymentInbox address={address} />
+            </div>
+          </section>
+        )}
+
         {/* Footer */}
         <footer className="mt-24 text-center space-y-3">
           <div className="divider max-w-xs mx-auto" />
@@ -130,6 +153,10 @@ export default function Home() {
           onClose={() => setShowCreate(false)}
           onCreated={() => refetch()}
         />
+      )}
+
+      {showSendPayment && (
+        <SendPaymentModal onClose={() => setShowSendPayment(false)} />
       )}
     </div>
   );

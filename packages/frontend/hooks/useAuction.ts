@@ -64,12 +64,17 @@ export function usePlaceBid() {
       // Step 1: encrypt client-side with ZK proof
       const encrypted = await encryptBid(bidWei);
 
-      // Step 2: send tx with encrypted input
+      // Step 2: send tx with encrypted input (full InEuint256 struct)
       await writeContractAsync({
         address: AUCTION_ADDRESS,
         abi: AUCTION_ABI,
         functionName: "placeBid",
-        args: [auctionId, { ctHash: encrypted.ctHash, securityZone: encrypted.securityZone }],
+        args: [auctionId, {
+          ctHash: encrypted.ctHash,
+          securityZone: encrypted.securityZone,
+          utype: encrypted.utype,
+          signature: encrypted.signature as `0x${string}`,
+        }],
         value: bidWei,
         chainId: CHAIN_ID,
       });

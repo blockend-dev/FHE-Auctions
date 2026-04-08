@@ -166,6 +166,22 @@ body {
     box-shadow: 0 6px 28px rgba(34, 211, 238, 0.45);
   }
 
+  .btn-emerald {
+    @apply relative overflow-hidden rounded-xl px-6 py-3 text-sm font-semibold text-white
+           transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, #059669, #10b981);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-emerald:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px rgba(16, 185, 129, 0.45);
+  }
+
+  .btn-emerald:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
   /* ── Gradient text ── */
   .gradient-text {
     @apply bg-clip-text text-transparent;

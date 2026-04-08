@@ -5,7 +5,6 @@ let _client: import("@cofhe/sdk").CofheClient | null = null;
 
 export async function getCofheClient() {
   if (typeof window === "undefined") return null;
-  if (typeof indexedDB === "undefined") return null;
   if (_client) return _client;
 
   const { createCofheConfig, createCofheClient } = await import("@cofhe/sdk/web");
