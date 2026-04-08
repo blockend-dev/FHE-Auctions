@@ -24,6 +24,7 @@ function useCountdown(endTime: number) {
     const tick = () => {
       const diff = endTime - Math.floor(Date.now() / 1000);
       if (diff <= 0) { setTimeLeft("Ended"); setEnded(true); return; }
+      setEnded(false);
       const h = Math.floor(diff / 3600);
       const m = Math.floor((diff % 3600) / 60);
       const s = diff % 60;
