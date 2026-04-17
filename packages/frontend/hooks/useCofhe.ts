@@ -69,6 +69,8 @@ export function useCofheClient() {
   return client;
 }
 
+// ── Single-value encryption (used by ConfidentialPayment) ─────────────────────
+
 export function useEncryptBid() {
   const client = useCofheClient();
   const [steps, setSteps] = useState<EncryptionStep[]>(
@@ -110,4 +112,60 @@ export function useEncryptBid() {
   );
 
   return { encryptBid, steps, isEncrypting, resetSteps };
+}
+
+// ── Three-factor encryption for vendor proposals ───────────────────────────────
+//
+// All three factors are 0–100 integer scores (higher = better):
+//   price    — price-competitiveness (100 = cheapest)
+//   quality  — quality score         (100 = best)
+//   delivery — delivery speed        (100 = fastest)
+//
+// Encrypted together in one ZK-proof pass for efficiency.
+
+export function useEncryptProposal() {
+  const client = useCofheClient();
+  const [steps, setSteps] = useState<EncryptionStep[]>(
+    STEP_ORDER.map((s) => ({ step: s, status: "idle" }))
+  );
+  const [isEncrypting, setIsEncrypting] = useState(false);
+
+  const resetSteps = useCallback(() => {
+    setSteps(STEP_ORDER.map((s) => ({ step: s, status: "idle" })));
+  }, []);
+
+  const encryptProposal = useCallback(
+    async (price: number, quality: number, delivery: number) => {
+      if (!client) throw new Error("CoFHE client not ready");
+      setIsEncrypting(true);
+      resetSteps();
+
+      try {
+        const [encPrice, encQuality, encDelivery] = await client
+          .encryptInputs([
+            Encryptable.uint128(BigInt(price)),
+            Encryptable.uint128(BigInt(quality)),
+            Encryptable.uint128(BigInt(delivery)),
+          ])
+          .onStep((step, ctx) => {
+            setSteps((prev) =>
+              prev.map((s) => {
+                if (s.step !== step) return s;
+                if (ctx?.isStart) return { ...s, status: "active" };
+                if (ctx?.isEnd) return { ...s, status: "done", duration: ctx.duration };
+                return s;
+              })
+            );
+          })
+          .execute();
+
+        return { encPrice, encQuality, encDelivery };
+      } finally {
+        setIsEncrypting(false);
+      }
+    },
+    [client, resetSteps]
+  );
+
+  return { encryptProposal, steps, isEncrypting, resetSteps };
 }
