@@ -18,8 +18,15 @@ async function main() {
   const sealedBidAuctionAddress = await sealedBidAuction.getAddress()
   console.log(`SealedBidAuction deployed at: ${sealedBidAuctionAddress}`)
 
+    console.log('Deploying VendorSelection...')
+  const VendorSelection = await ethers.getContractFactory('VendorSelection')
+  const vendorSelection = await VendorSelection.deploy()
+  await vendorSelection.waitForDeployment()
+  const vendorSelectionAddress = await vendorSelection.getAddress()
+  console.log(`VendorSelection deployed at: ${vendorSelectionAddress}`)
+
   console.log('✅ Deployment complete')
-  console.log({ confidentialPaymentAddress, sealedBidAuctionAddress })
+  console.log({ confidentialPaymentAddress, sealedBidAuctionAddress, vendorSelectionAddress })
 }
 
 main().catch((error) => {
