@@ -795,5 +795,3 @@ export const VENDOR_ABI = [
       "type": "function"
     }
   ] as const
-export const AUCTION_ADDRESS = VENDOR_ADDRESS;
-export const AUCTION_ABI = VENDOR_ABI;

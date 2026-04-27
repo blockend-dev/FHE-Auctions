@@ -56,9 +56,9 @@ export function HeroSection() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="text-5xl sm:text-6xl font-black tracking-tight leading-tight mb-6"
       >
-        Select Vendors.
+        Sealed Proposals.
         <br />
-        <span className="gradient-text">Privately.</span>
+        <span className="gradient-text">Smart Selection.</span>
       </motion.h1>
 
       {/* Sub */}

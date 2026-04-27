@@ -6,12 +6,12 @@ import "./globals.css";
 // const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "FHE Sealed-Bid Auction | Fhenix",
+  title: "Sealect | Confidential Vendor Selection · Fhenix",
   description:
-    "MEV-protected sealed-bid auctions powered by Fully Homomorphic Encryption on Fhenix. Bids stay encrypted — on-chain, always.",
+    "FHE-powered vendor selection engine. Vendors submit encrypted multi-factor proposals — price, quality, delivery — scored on-chain without ever revealing raw inputs.",
   openGraph: {
-    title: "FHE Sealed-Bid Auction | Fhenix",
-    description: "Bid privately. Win fairly. Powered by FHE.",
+    title: "Sealect | Confidential Vendor Selection · Fhenix",
+    description: "Sealed proposals. Smart selection. Powered by Fhenix CoFHE.",
   },
 };
 

@@ -6,15 +6,24 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, ExternalLink, Send } from "lucide-react";
 import { useAccount } from "wagmi";
-import { useRequestCount } from "../hooks/useAuction";
-import { AuctionCard } from "../components/AuctionCard";
+import { useRequestCount } from "../hooks/useRequest";
+import { RequestCard } from "../components/RequestCard";
 import dynamicImport from "next/dynamic";
 import { WalletButton } from "../components/WalletButton";
 import { HeroSection } from "../components/HeroSection";
 
-const CreateAuctionModal = dynamicImport(() => import("../components/CreateAuctionModal").then(mod => mod.CreateAuctionModal), { ssr: false });
-const SendPaymentModal = dynamicImport(() => import("../components/SendPaymentModal").then(mod => mod.SendPaymentModal), { ssr: false });
-const PaymentInbox = dynamicImport(() => import("../components/PaymentInbox").then(mod => mod.PaymentInbox), { ssr: false });
+const CreateRequestModal = dynamicImport(
+  () => import("../components/CreateRequestModal").then(mod => mod.CreateRequestModal),
+  { ssr: false }
+);
+const SendPaymentModal = dynamicImport(
+  () => import("../components/SendPaymentModal").then(mod => mod.SendPaymentModal),
+  { ssr: false }
+);
+const PaymentInbox = dynamicImport(
+  () => import("../components/PaymentInbox").then(mod => mod.PaymentInbox),
+  { ssr: false }
+);
 
 export default function Home() {
   const { isConnected, address } = useAccount();
@@ -38,18 +47,14 @@ export default function Home() {
               🔐
             </div>
             <div>
-              <span className="font-bold text-white text-sm">VendorSelect</span>
+              <span className="font-bold text-white text-sm">Sealect</span>
               <span className="ml-2 text-xs text-slate-500 hidden sm:inline">by Fhenix</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <a
-              href="https://docs.fhenix.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-            >
+            <a href="https://docs.fhenix.io" target="_blank" rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors">
               Docs <ExternalLink size={11} />
             </a>
             <WalletButton />
@@ -58,10 +63,9 @@ export default function Home() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-4 pb-24">
-        {/* Hero */}
         <HeroSection />
 
-        {/* Decision Requests section */}
+        {/* Decision Requests */}
         <section className="mt-4">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -70,29 +74,19 @@ export default function Home() {
                 {requestIds.length} request{requestIds.length !== 1 ? "s" : ""} · all proposals encrypted
               </p>
             </div>
-
             {isConnected && (
-              <button
-                onClick={() => setShowCreate(true)}
-                className="btn-primary flex items-center gap-2"
-              >
-                <Plus size={15} />
-                New Request
+              <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
+                <Plus size={15} /> New Request
               </button>
             )}
           </div>
 
-          {/* Grid */}
           {requestIds.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="glass-card text-center py-20"
-            >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card text-center py-20">
               <div className="text-4xl mb-4">🔐</div>
               <p className="text-lg font-semibold text-slate-300 mb-2">No requests yet</p>
               <p className="text-sm text-slate-500 mb-6">
-                Be the first to post a confidential vendor selection request on Fhenix.
+                Be the first to post a confidential vendor selection request on Sealect.
               </p>
               {isConnected ? (
                 <button onClick={() => setShowCreate(true)} className="btn-primary inline-flex items-center gap-2">
@@ -105,13 +99,13 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {requestIds.map((id, i) => (
-                <AuctionCard key={id.toString()} auctionId={id} index={i} />
+                <RequestCard key={id.toString()} requestId={id} index={i} />
               ))}
             </div>
           )}
         </section>
 
-        {/* Confidential Payments section */}
+        {/* Confidential Payments */}
         {isConnected && address && (
           <section className="mt-16">
             <div className="flex items-center justify-between mb-6">
@@ -120,44 +114,29 @@ export default function Home() {
                 <p className="text-sm text-slate-500 mt-0.5">Send ETH with FHE-encrypted amounts · powered by Privara</p>
               </div>
               <button onClick={() => setShowSendPayment(true)} className="btn-emerald flex items-center gap-2">
-                <Send size={15} />
-                Send Private
+                <Send size={15} /> Send Private
               </button>
             </div>
-
             <div className="glass-card">
               <PaymentInbox address={address} />
             </div>
           </section>
         )}
 
-        {/* Footer */}
         <footer className="mt-24 text-center space-y-3">
           <div className="divider max-w-xs mx-auto" />
           <div className="flex items-center justify-center gap-6 text-xs text-slate-600">
-            <a href="https://fhenix.io" target="_blank" rel="noopener noreferrer"
-              className="hover:text-violet-400 transition-colors">Fhenix</a>
-            <a href="https://cofhe-docs.fhenix.zone" target="_blank" rel="noopener noreferrer"
-              className="hover:text-violet-400 transition-colors">CoFHE Docs</a>
-            <a href="https://github.com/FhenixProtocol/awesome-fhenix" target="_blank" rel="noopener noreferrer"
-              className="hover:text-violet-400 transition-colors">GitHub</a>
-            <a href="https://reineira.xyz/docs" target="_blank" rel="noopener noreferrer"
-              className="hover:text-violet-400 transition-colors">Privara</a>
+            <a href="https://fhenix.io" target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 transition-colors">Fhenix</a>
+            <a href="https://cofhe-docs.fhenix.zone" target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 transition-colors">CoFHE Docs</a>
+            <a href="https://github.com/FhenixProtocol/awesome-fhenix" target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 transition-colors">GitHub</a>
+            <a href="https://reineira.xyz/docs" target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 transition-colors">Privara</a>
           </div>
-          <p className="text-xs text-slate-700">Arbitrum Sepolia · Privacy-by-Design · Fhenix CoFHE</p>
+          <p className="text-xs text-slate-700">Arbitrum Sepolia · Sealect · Fhenix CoFHE</p>
         </footer>
       </main>
 
-      {showCreate && (
-        <CreateAuctionModal
-          onClose={() => setShowCreate(false)}
-          onCreated={() => refetch()}
-        />
-      )}
-
-      {showSendPayment && (
-        <SendPaymentModal onClose={() => setShowSendPayment(false)} />
-      )}
+      {showCreate && <CreateRequestModal onClose={() => setShowCreate(false)} onCreated={() => refetch()} />}
+      {showSendPayment && <SendPaymentModal onClose={() => setShowSendPayment(false)} />}
     </div>
   );
 }
