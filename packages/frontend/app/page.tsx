@@ -4,9 +4,10 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, ExternalLink, Send } from "lucide-react";
+import { Plus, ExternalLink, Send, FileText } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useRequestCount } from "../hooks/useRequest";
+import { useRoundCount } from "../hooks/useBlindReview";
 import { RequestCard } from "../components/RequestCard";
 import dynamicImport from "next/dynamic";
 import { WalletButton } from "../components/WalletButton";
@@ -24,15 +25,28 @@ const PaymentInbox = dynamicImport(
   () => import("../components/PaymentInbox").then(mod => mod.PaymentInbox),
   { ssr: false }
 );
+const CreateRoundModal = dynamicImport(
+  () => import("../components/CreateRoundModal").then(mod => mod.CreateRoundModal),
+  { ssr: false }
+);
+const ReviewRoundCard = dynamicImport(
+  () => import("../components/ReviewRoundCard").then(mod => mod.ReviewRoundCard),
+  { ssr: false }
+);
 
 export default function Home() {
   const { isConnected, address } = useAccount();
   const { data: count, refetch } = useRequestCount();
-  const [showCreate, setShowCreate] = useState(false);
+  const { data: roundCount, refetch: refetchRounds } = useRoundCount();
+  const [showCreate,      setShowCreate]      = useState(false);
   const [showSendPayment, setShowSendPayment] = useState(false);
+  const [showCreateRound, setShowCreateRound] = useState(false);
 
   const requestIds = count
     ? Array.from({ length: Number(count) }, (_, i) => BigInt(i)).reverse()
+    : [];
+  const roundIds = roundCount
+    ? Array.from({ length: Number(roundCount) }, (_, i) => BigInt(i)).reverse()
     : [];
 
   return (
@@ -105,6 +119,46 @@ export default function Home() {
           )}
         </section>
 
+        {/* Blind Review Rounds */}
+        <section className="mt-16">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-white">Blind Review Rounds</h2>
+              <p className="text-sm text-slate-500 mt-0.5">
+                {roundIds.length} round{roundIds.length !== 1 ? "s" : ""} · review scores FHE-encrypted
+              </p>
+            </div>
+            {isConnected && (
+              <button onClick={() => setShowCreateRound(true)} className="btn-primary flex items-center gap-2">
+                <Plus size={15} /> New Round
+              </button>
+            )}
+          </div>
+
+          {roundIds.length === 0 ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card text-center py-20">
+              <div className="text-4xl mb-4">🔬</div>
+              <p className="text-lg font-semibold text-slate-300 mb-2">No review rounds yet</p>
+              <p className="text-sm text-slate-500 mb-6">
+                Create a blind peer review round — grant committees, DAO proposals, academic submissions.
+              </p>
+              {isConnected ? (
+                <button onClick={() => setShowCreateRound(true)} className="btn-primary inline-flex items-center gap-2">
+                  <FileText size={15} /> Create First Round
+                </button>
+              ) : (
+                <p className="text-sm text-slate-600">Connect your wallet to get started.</p>
+              )}
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {roundIds.map((id, i) => (
+                <ReviewRoundCard key={id.toString()} roundId={id} index={i} />
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Confidential Payments */}
         {isConnected && address && (
           <section className="mt-16">
@@ -137,6 +191,7 @@ export default function Home() {
 
       {showCreate && <CreateRequestModal onClose={() => setShowCreate(false)} onCreated={() => refetch()} />}
       {showSendPayment && <SendPaymentModal onClose={() => setShowSendPayment(false)} />}
+      {showCreateRound && <CreateRoundModal onClose={() => setShowCreateRound(false)} onCreated={() => { refetchRounds(); setShowCreateRound(false); }} />}
     </div>
   );
 }
