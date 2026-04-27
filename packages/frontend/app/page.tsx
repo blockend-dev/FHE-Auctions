@@ -6,7 +6,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, ExternalLink, Send } from "lucide-react";
 import { useAccount } from "wagmi";
-import { useAuctionCount } from "../hooks/useAuction";
+import { useRequestCount } from "../hooks/useAuction";
 import { AuctionCard } from "../components/AuctionCard";
 import dynamicImport from "next/dynamic";
 import { WalletButton } from "../components/WalletButton";
@@ -18,11 +18,11 @@ const PaymentInbox = dynamicImport(() => import("../components/PaymentInbox").th
 
 export default function Home() {
   const { isConnected, address } = useAccount();
-  const { data: count, refetch } = useAuctionCount();
+  const { data: count, refetch } = useRequestCount();
   const [showCreate, setShowCreate] = useState(false);
   const [showSendPayment, setShowSendPayment] = useState(false);
 
-  const auctionIds = count
+  const requestIds = count
     ? Array.from({ length: Number(count) }, (_, i) => BigInt(i)).reverse()
     : [];
 
@@ -38,7 +38,7 @@ export default function Home() {
               🔐
             </div>
             <div>
-              <span className="font-bold text-white text-sm">FHE Auctions</span>
+              <span className="font-bold text-white text-sm">VendorSelect</span>
               <span className="ml-2 text-xs text-slate-500 hidden sm:inline">by Fhenix</span>
             </div>
           </div>
@@ -61,13 +61,13 @@ export default function Home() {
         {/* Hero */}
         <HeroSection />
 
-        {/* Auctions section */}
+        {/* Decision Requests section */}
         <section className="mt-4">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-white">Live Auctions</h2>
+              <h2 className="text-xl font-bold text-white">Decision Requests</h2>
               <p className="text-sm text-slate-500 mt-0.5">
-                {auctionIds.length} auction{auctionIds.length !== 1 ? "s" : ""} · all bids encrypted
+                {requestIds.length} request{requestIds.length !== 1 ? "s" : ""} · all proposals encrypted
               </p>
             </div>
 
@@ -77,26 +77,26 @@ export default function Home() {
                 className="btn-primary flex items-center gap-2"
               >
                 <Plus size={15} />
-                New Auction
+                New Request
               </button>
             )}
           </div>
 
           {/* Grid */}
-          {auctionIds.length === 0 ? (
+          {requestIds.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="glass-card text-center py-20"
             >
               <div className="text-4xl mb-4">🔐</div>
-              <p className="text-lg font-semibold text-slate-300 mb-2">No auctions yet</p>
+              <p className="text-lg font-semibold text-slate-300 mb-2">No requests yet</p>
               <p className="text-sm text-slate-500 mb-6">
-                Be the first to create a privacy-preserving sealed-bid auction on Fhenix.
+                Be the first to post a confidential vendor selection request on Fhenix.
               </p>
               {isConnected ? (
                 <button onClick={() => setShowCreate(true)} className="btn-primary inline-flex items-center gap-2">
-                  <Plus size={15} /> Create First Auction
+                  <Plus size={15} /> Create First Request
                 </button>
               ) : (
                 <p className="text-sm text-slate-600">Connect your wallet to get started.</p>
@@ -104,7 +104,7 @@ export default function Home() {
             </motion.div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {auctionIds.map((id, i) => (
+              {requestIds.map((id, i) => (
                 <AuctionCard key={id.toString()} auctionId={id} index={i} />
               ))}
             </div>

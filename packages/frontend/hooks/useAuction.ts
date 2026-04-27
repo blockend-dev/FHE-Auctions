@@ -74,7 +74,7 @@ export function useSubmitProposal() {
 
       // Step 2: fetch fresh fees — stale estimate after ZK proof causes rejection
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3); // add 33% headroom for network volatility between estimation and submission
+      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3); // add 33% headroom for Arbitrum's dynamic fee adjustments
 
       // Step 3: submit with all 3 encrypted InEuint128 structs + deposit
       await writeContractAsync({
@@ -109,6 +109,7 @@ export function useSubmitProposal() {
 export function useCreateRequest() {
   const { writeContractAsync, data: txHash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const publicClient = usePublicClient();
 
   const createRequest = useCallback(
     async (
@@ -119,15 +120,20 @@ export function useCreateRequest() {
       wQuality: number,
       wDelivery: number
     ) => {
+      const fees = await publicClient!.estimateFeesPerGas();
+      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
+
       await writeContractAsync({
         address: VENDOR_ADDRESS,
         abi: VENDOR_ABI,
         functionName: "createRequest",
         args: [title, BigInt(durationHours * 3600), parseEther(depositEth), wPrice, wQuality, wDelivery],
         chainId: CHAIN_ID,
+        maxFeePerGas,
+        maxPriorityFeePerGas: fees.maxPriorityFeePerGas ?? BigInt(1_500_000),
       });
     },
-    [writeContractAsync]
+    [writeContractAsync, publicClient]
   );
 
   return { createRequest, isPending, isConfirming, isSuccess };
@@ -138,18 +144,24 @@ export function useCreateRequest() {
 export function useClaimDeposit() {
   const { writeContractAsync, data: txHash, isPending } = useWriteContract();
   const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const publicClient = usePublicClient();
 
   const claimDeposit = useCallback(
     async (requestId: bigint) => {
+      const fees = await publicClient!.estimateFeesPerGas();
+      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
+
       await writeContractAsync({
         address: VENDOR_ADDRESS,
         abi: VENDOR_ABI,
         functionName: "claimDeposit",
         args: [requestId],
         chainId: CHAIN_ID,
+        maxFeePerGas,
+        maxPriorityFeePerGas: fees.maxPriorityFeePerGas ?? BigInt(1_500_000),
       });
     },
-    [writeContractAsync]
+    [writeContractAsync, publicClient]
   );
 
   return { claimDeposit, isPending, isSuccess };

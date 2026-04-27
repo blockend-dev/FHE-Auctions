@@ -1,31 +1,31 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldCheck, EyeOff, Zap, Lock } from "lucide-react";
+import { ShieldCheck, EyeOff, Zap, BarChart2 } from "lucide-react";
 
 const features = [
   {
-    icon: Lock,
-    title: "Encrypted On-Chain",
-    desc: "Bids are FHE-encrypted before leaving your browser. The contract compares them without ever decrypting.",
+    icon: BarChart2,
+    title: "Multi-Factor Scoring",
+    desc: "Vendors submit price, quality, and delivery scores. The contract computes a weighted total without ever seeing the individual inputs.",
     color: "#8b5cf6",
   },
   {
     icon: EyeOff,
-    title: "Zero MEV",
-    desc: "No plaintext in the mempool. Front-runners and sandwich bots see nothing — cryptographically impossible.",
+    title: "Zero Information Leak",
+    desc: "Proposals are FHE-encrypted before leaving the browser. Competitors cannot observe or undercut each other — cryptographically enforced.",
     color: "#22d3ee",
   },
   {
     icon: ShieldCheck,
-    title: "ZK Verified",
-    desc: "Every encrypted input carries a ZK proof of knowledge. The verifier checks it before your bid lands on-chain.",
+    title: "ZK-Verified Inputs",
+    desc: "Every encrypted factor carries a zero-knowledge proof of validity. The contract verifies it before the proposal is accepted on-chain.",
     color: "#ec4899",
   },
   {
     icon: Zap,
-    title: "Instant Settlement",
-    desc: "Winner is determined by FHE comparison. Losers get refunds trustlessly — no oracle, no reveal phase.",
+    title: "On-Chain FHE Compute",
+    desc: "Weighted scoring runs fully on ciphertext via the Fhenix CoFHE co-processor. The optimal vendor emerges — raw scores stay encrypted forever.",
     color: "#f59e0b",
   },
 ];
@@ -56,9 +56,9 @@ export function HeroSection() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="text-5xl sm:text-6xl font-black tracking-tight leading-tight mb-6"
       >
-        Bid Privately.
+        Select Vendors.
         <br />
-        <span className="gradient-text">Win Fairly.</span>
+        <span className="gradient-text">Privately.</span>
       </motion.h1>
 
       {/* Sub */}
@@ -68,39 +68,36 @@ export function HeroSection() {
         transition={{ duration: 0.6, delay: 0.2 }}
         className="text-lg text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed"
       >
-        The first sealed-bid auction where bids are{" "}
+        The first confidential vendor selection engine where multi-factor proposals are{" "}
         <span className="text-violet-400 font-medium">Fully Homomorphic Encrypted</span> on-chain.
-        No MEV. No front-running. No information leakage — ever.
+        Scores computed in ciphertext. Optimal vendor revealed — nothing else.
       </motion.p>
 
-      {/* Encryption flow diagram */}
+      {/* Flow diagram */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
         className="glass-card max-w-2xl mx-auto mb-16"
       >
-        <p className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-medium">How your bid travels</p>
-        <div className="flex items-center justify-between gap-2 flex-wrap justify-center gap-y-3">
+        <p className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-medium">How a proposal travels</p>
+        <div className="flex items-center justify-center gap-2 flex-wrap gap-y-3">
           {[
-            { label: "Your Bid", sub: "plaintext", color: "#94a3b8" },
+            { label: "3 Factors", sub: "price · quality · delivery", color: "#94a3b8" },
             { label: "→" },
             { label: "FHE Encrypt", sub: "+ ZK Proof", color: "#8b5cf6" },
             { label: "→" },
             { label: "On-Chain", sub: "ciphertext", color: "#22d3ee" },
             { label: "→" },
-            { label: "FHE Compare", sub: "encrypted", color: "#8b5cf6" },
+            { label: "FHE Score", sub: "w1·p + w2·q + w3·d", color: "#8b5cf6" },
             { label: "→" },
-            { label: "Winner", sub: "revealed", color: "#10b981" },
+            { label: "Best Vendor", sub: "revealed", color: "#10b981" },
           ].map((item, i) =>
             item.label === "→" ? (
               <span key={i} className="text-slate-600 text-lg">→</span>
             ) : (
               <div key={i} className="text-center">
-                <div
-                  className="text-sm font-semibold"
-                  style={{ color: item.color }}
-                >
+                <div className="text-sm font-semibold" style={{ color: item.color }}>
                   {item.label}
                 </div>
                 <div className="text-xs text-slate-600">{item.sub}</div>

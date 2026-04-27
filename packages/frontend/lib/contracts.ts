@@ -13,85 +13,264 @@ export const INEUINT_ABI_TYPE = {
   ],
 } as const;
 
-export const PAYMENT_ABI = [
-  { name: "AlreadyClaimed", type: "error", inputs: [] },
-  { name: "InsufficientValue", type: "error", inputs: [] },
-  {
-    name: "InvalidEncryptedInput", type: "error",
-    inputs: [{ name: "got", internalType: "uint8", type: "uint8" }, { name: "expected", internalType: "uint8", type: "uint8" }]
-  },
-  { name: "NotRecipient", type: "error", inputs: [] },
-  { name: "TransferFailed", type: "error", inputs: [] },
-  {
-    anonymous: false, name: "PaymentClaimed", type: "event",
-    inputs: [
-      { indexed: true, internalType: "uint256", name: "id", type: "uint256" },
-      { indexed: true, internalType: "address", name: "recipient", type: "address" },
-      { indexed: false, internalType: "uint256", name: "amount", type: "uint256" },
-    ]
-  },
-  {
-    anonymous: false, name: "PaymentCreated", type: "event",
-    inputs: [
-      { indexed: true, internalType: "uint256", name: "id", type: "uint256" },
-      { indexed: true, internalType: "address", name: "sender", type: "address" },
-      { indexed: true, internalType: "address", name: "recipient", type: "address" },
-      { indexed: false, internalType: "bytes32", name: "refHash", type: "bytes32" },
-    ]
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "id", type: "uint256" }],
-    name: "claimPayment", outputs: [], stateMutability: "nonpayable", type: "function"
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "id", type: "uint256" }],
-    name: "getPaymentInfo",
-    outputs: [
-      { internalType: "address", name: "sender", type: "address" },
-      { internalType: "address", name: "recipient", type: "address" },
-      { internalType: "uint256", name: "escrowed", type: "uint256" },
-      { internalType: "uint256", name: "timestamp", type: "uint256" },
-      { internalType: "bool", name: "claimed", type: "bool" },
-      { internalType: "bytes32", name: "refHash", type: "bytes32" },
-    ],
-    stateMutability: "view", type: "function"
-  },
-  {
-    inputs: [{ internalType: "address", name: "addr", type: "address" }],
-    name: "getReceivable",
-    outputs: [{ internalType: "uint256[]", name: "", type: "uint256[]" }],
-    stateMutability: "view", type: "function"
-  },
-  {
-    inputs: [], name: "paymentCount",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view", type: "function"
-  },
-  {
-    inputs: [{ internalType: "address", name: "", type: "address" }, { internalType: "uint256", name: "", type: "uint256" }],
-    name: "receivable",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view", type: "function"
-  },
-  {
-    inputs: [
-      { internalType: "address", name: "recipient", type: "address" },
-      {
-        components: [
-          { internalType: "uint256", name: "ctHash", type: "uint256" },
-          { internalType: "uint8", name: "securityZone", type: "uint8" },
-          { internalType: "uint8", name: "utype", type: "uint8" },
-          { internalType: "bytes", name: "signature", type: "bytes" },
-        ],
-        internalType: "struct InEuint128", name: "encAmount", type: "tuple"
-      },
-      { internalType: "bytes32", name: "refHash", type: "bytes32" },
-    ],
-    name: "sendPayment",
-    outputs: [{ internalType: "uint256", name: "id", type: "uint256" }],
-    stateMutability: "payable", type: "function"
-  },
-] as const;
+export const PAYMENT_ABI =[
+    {
+      "inputs": [],
+      "name": "AlreadyClaimed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientValue",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "got",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "expected",
+          "type": "uint8"
+        }
+      ],
+      "name": "InvalidEncryptedInput",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotRecipient",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TransferFailed",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "PaymentClaimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "refHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "PaymentCreated",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimPayment",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        }
+      ],
+      "name": "getPaymentInfo",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "escrowed",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "claimed",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "refHash",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        }
+      ],
+      "name": "getReceivable",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paymentCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "receivable",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "ctHash",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "securityZone",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "utype",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct InEuint128",
+          "name": "encAmount",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "refHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "sendPayment",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ] as const;
 
 
 // ── VendorSelection ABI ────────────────────────────────────────────────────────
@@ -467,7 +646,7 @@ export const VENDOR_ABI = [
         {
           "internalType": "euint128",
           "name": "bestScore",
-          "type": "uint256"
+          "type": "bytes32"
         },
         {
           "internalType": "address",
@@ -615,8 +794,6 @@ export const VENDOR_ABI = [
       "stateMutability": "payable",
       "type": "function"
     }
-  ] as const;
-
-// Back-compat alias used by ConfidentialPayment components
+  ] as const
 export const AUCTION_ADDRESS = VENDOR_ADDRESS;
 export const AUCTION_ABI = VENDOR_ABI;
