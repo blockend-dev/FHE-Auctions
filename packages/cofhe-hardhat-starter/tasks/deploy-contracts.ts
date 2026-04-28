@@ -48,3 +48,26 @@ task('deploy-SealedBidAuction ', 'Deploy the SealedBidAuction contract to the se
 
 	return SealedBidAuctionAddress
 })
+
+task('deploy-blind-review', 'Deploy the BlindReview contract to the selected network').setAction(async (_, hre: HardhatRuntimeEnvironment) => {
+	const { ethers, network } = hre
+
+	console.log(`Deploying BlindReview to ${network.name}...`)
+
+	// Get the deployer account
+	const [deployer] = await ethers.getSigners()
+	console.log(`Deploying with account: ${deployer.address}`)
+
+	// Deploy the contract
+	const BlindReview = await ethers.getContractFactory('BlindReview')
+	const blindReview = await BlindReview.deploy()
+	await blindReview.waitForDeployment()
+
+	const BlindReviewAddress = await blindReview.getAddress()
+	console.log(`BlindReview deployed to: ${BlindReviewAddress}`)
+
+	// Save the deployment
+	saveDeployment(network.name, 'BlindReview', BlindReviewAddress)
+
+	return BlindReviewAddress
+})
