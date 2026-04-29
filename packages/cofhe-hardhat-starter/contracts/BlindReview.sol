@@ -58,7 +58,7 @@ contract BlindReview {
         _;
     }
 
-    // ── Create a new review round ─────────────────────────────────────────────
+    //  Create a new review round 
 
     function createRound(
         string calldata title,
@@ -82,7 +82,7 @@ contract BlindReview {
         emit RoundCreated(roundId, msg.sender, title, r.deadline);
     }
 
-    // ── Submit a proposal to be reviewed ─────────────────────────────────────
+    //  Submit a proposal to be reviewed
 
     function addProposal(
         uint256 roundId,
@@ -100,7 +100,7 @@ contract BlindReview {
         emit ProposalAdded(roundId, proposalId, msg.sender, title);
     }
 
-    // ── Submit encrypted review scores for one proposal ───────────────────────
+    //  Submit encrypted review scores for one proposal 
 
     function submitReview(
         uint256 roundId,
@@ -141,7 +141,7 @@ contract BlindReview {
         emit ReviewSubmitted(roundId, proposalId, msg.sender);
     }
 
-    // ── Organizer finalizes after deadline ────────────────────────────────────
+    //  Organizer finalizes after deadline 
 
     function finalizeRound(uint256 roundId, uint256 winnerProposalId)
         external
@@ -154,10 +154,14 @@ contract BlindReview {
 
         r.finalized = true;
         r.winnerProposalId = winnerProposalId;
+
+        // Grant organizer ACL access to decrypt the winner's score client-side via permit
+        FHE.allow(_proposals[roundId][winnerProposalId].totalScore, msg.sender);
+
         emit RoundFinalized(roundId, winnerProposalId);
     }
 
-    // ── View helpers ──────────────────────────────────────────────────────────
+    //  View helpers 
 
     function getRound(uint256 roundId)
         external
@@ -195,5 +199,15 @@ contract BlindReview {
     {
         Proposal storage p = _proposals[roundId][proposalId];
         return (p.submitter, p.title, p.summary, p.reviewCount);
+    }
+
+    /// @notice Returns the raw ctHash of a proposal's encrypted total score.
+    ///         Use with a CoFHE permit + decryptForView to reveal the score client-side.
+    function getProposalScoreHandle(uint256 roundId, uint256 proposalId)
+        external
+        view
+        returns (uint256)
+    {
+        return euint128.unwrap(_proposals[roundId][proposalId].totalScore);
     }
 }
