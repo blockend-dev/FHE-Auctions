@@ -74,7 +74,7 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            <a href="https://docs.fhenix.io" target="_blank" rel="noopener noreferrer"
+            <a href="https://tundra-icon-9ac.notion.site/Sealect-Confidential-Decision-Platform-33310f526b26804baeb0d9355eeae6ee" target="_blank" rel="noopener noreferrer"
               className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors">
               Docs <ExternalLink size={11} />
             </a>
