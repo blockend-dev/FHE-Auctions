@@ -1,32 +1,36 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldCheck, EyeOff, Zap, BarChart2 } from "lucide-react";
+import { ShieldCheck, EyeOff, FileText, Send } from "lucide-react";
 
-const features = [
-  {
-    icon: BarChart2,
-    title: "Multi-Factor Scoring",
-    desc: "Vendors submit price, quality, and delivery scores. The contract computes a weighted total without ever seeing the individual inputs.",
-    color: "#8b5cf6",
-  },
+const modules = [
   {
     icon: EyeOff,
-    title: "Zero Information Leak",
-    desc: "Proposals are FHE-encrypted before leaving the browser. Competitors cannot observe or undercut each other — cryptographically enforced.",
+    title: "Decision Requests",
+    desc: "Vendors submit price, quality, and delivery scores FHE-encrypted. The contract scores all proposals on ciphertext — competitors never see each other's inputs.",
+    color: "#8b5cf6",
+    tag: "VendorSelection.sol",
+  },
+  {
+    icon: FileText,
+    title: "Blind Peer Review",
+    desc: "Reviewers score proposals on impact, feasibility, and innovation — all encrypted. After finalization, the organizer reveals the winner's score via a CoFHE permit.",
     color: "#22d3ee",
+    tag: "BlindReview.sol",
   },
   {
     icon: ShieldCheck,
-    title: "ZK-Verified Inputs",
-    desc: "Every encrypted factor carries a zero-knowledge proof of validity. The contract verifies it before the proposal is accepted on-chain.",
+    title: "Compliance Gate",
+    desc: "Age and jurisdiction are FHE-encrypted in the browser. The contract checks both conditions on ciphertext — your raw values are never revealed on-chain.",
     color: "#ec4899",
+    tag: "IdentityGate.sol",
   },
   {
-    icon: Zap,
-    title: "On-Chain FHE Compute",
-    desc: "Weighted scoring runs fully on ciphertext via the Fhenix CoFHE co-processor. The optimal vendor emerges — raw scores stay encrypted forever.",
+    icon: Send,
+    title: "Confidential Payments",
+    desc: "Send ETH with an FHE-encrypted amount. The value stays hidden until the recipient claims — observable to no one else on-chain.",
     color: "#f59e0b",
+    tag: "ConfidentialPayment.sol",
   },
 ];
 
@@ -56,9 +60,9 @@ export function HeroSection() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="text-5xl sm:text-6xl font-black tracking-tight leading-tight mb-6"
       >
-        Sealed Proposals.
+        Sealed Inputs.
         <br />
-        <span className="gradient-text">Smart Selection.</span>
+        <span className="gradient-text">Private Decisions.</span>
       </motion.h1>
 
       {/* Sub */}
@@ -68,30 +72,31 @@ export function HeroSection() {
         transition={{ duration: 0.6, delay: 0.2 }}
         className="text-lg text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed"
       >
-        The first confidential vendor selection engine where multi-factor proposals are{" "}
-        <span className="text-violet-400 font-medium">Fully Homomorphic Encrypted</span> on-chain.
-        Scores computed in ciphertext. Optimal vendor revealed — nothing else.
+        Four FHE-powered modules — vendor selection, blind peer review, KYC compliance, and confidential payments —
+        all computed on{" "}
+        <span className="text-violet-400 font-medium">encrypted data</span>{" "}
+        via the Fhenix CoFHE co-processor. Raw inputs never touch plaintext on-chain.
       </motion.p>
 
-      {/* Flow diagram */}
+      {/* Common FHE pipeline */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
         className="glass-card max-w-2xl mx-auto mb-16"
       >
-        <p className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-medium">How a proposal travels</p>
+        <p className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-medium">How every input travels</p>
         <div className="flex items-center justify-center gap-2 flex-wrap gap-y-3">
           {[
-            { label: "3 Factors", sub: "price · quality · delivery", color: "#94a3b8" },
+            { label: "Plaintext", sub: "browser only", color: "#94a3b8" },
             { label: "→" },
             { label: "FHE Encrypt", sub: "+ ZK Proof", color: "#8b5cf6" },
             { label: "→" },
             { label: "On-Chain", sub: "ciphertext", color: "#22d3ee" },
             { label: "→" },
-            { label: "FHE Score", sub: "w1·p + w2·q + w3·d", color: "#8b5cf6" },
+            { label: "FHE Compute", sub: "gt · mul · add · select", color: "#8b5cf6" },
             { label: "→" },
-            { label: "Best Vendor", sub: "revealed", color: "#10b981" },
+            { label: "Min. Reveal", sub: "result only", color: "#10b981" },
           ].map((item, i) =>
             item.label === "→" ? (
               <span key={i} className="text-slate-600 text-lg">→</span>
@@ -107,24 +112,27 @@ export function HeroSection() {
         </div>
       </motion.div>
 
-      {/* Feature grid */}
+      {/* Module cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-        {features.map((f, i) => (
+        {modules.map((m, i) => (
           <motion.div
-            key={f.title}
+            key={m.title}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 + i * 0.08 }}
-            className="glass-card group"
+            className="glass-card group flex flex-col"
           >
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-all group-hover:scale-110"
-              style={{ background: `${f.color}18`, border: `1px solid ${f.color}30` }}
+              style={{ background: `${m.color}18`, border: `1px solid ${m.color}30` }}
             >
-              <f.icon size={18} style={{ color: f.color }} />
+              <m.icon size={18} style={{ color: m.color }} />
             </div>
-            <h3 className="text-sm font-bold text-white mb-1.5">{f.title}</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
+            <h3 className="text-sm font-bold text-white mb-1.5">{m.title}</h3>
+            <p className="text-xs text-slate-500 leading-relaxed flex-1">{m.desc}</p>
+            <div className="mt-3 pt-3 border-t border-white/5">
+              <span className="text-[10px] font-mono" style={{ color: `${m.color}99` }}>{m.tag}</span>
+            </div>
           </motion.div>
         ))}
       </div>

@@ -86,45 +86,97 @@ export default function Home() {
       <main className="max-w-6xl mx-auto px-4 pb-24">
         <HeroSection />
 
-        {/* Identity Gate banner */}
+        {/* Identity Gate — full section */}
         {isConnected && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4"
-            style={
-              isVerified
-                ? { background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)" }
-                : { background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.2)" }
-            }
+          <motion.section
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mt-10"
           >
-            <div className="flex items-center gap-3 min-w-0">
-              {isVerified
-                ? <ShieldCheck size={18} className="text-emerald-400 flex-shrink-0" />
-                : <ShieldAlert size={18} className="text-violet-400 flex-shrink-0" />}
-              <div className="min-w-0">
-                <p className={`text-sm font-semibold ${isVerified ? "text-emerald-300" : "text-violet-300"}`}>
-                  {isVerified ? "Identity Verified" : "Identity Not Verified"}
-                </p>
-                <p className="text-xs text-slate-500 truncate">
-                  {isVerified
-                    ? "Your FHE-encrypted on-chain permit is active — you can submit proposals."
-                    : "Verify your age & jurisdiction via FHE to unlock proposal submission."}
-                </p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-white">Compliance Gate</h2>
+                <p className="text-sm text-slate-500 mt-0.5">FHE-verified identity · age &amp; jurisdiction checked on encrypted data</p>
               </div>
             </div>
-            {!isVerified && (
-              <button
-                onClick={() => setShowKYC(true)}
-                className="btn-primary flex-shrink-0 flex items-center gap-2 text-sm"
-              >
-                <ShieldCheck size={14} /> Get Verified
-              </button>
-            )}
-          </motion.div>
+
+            <div
+              className="relative overflow-hidden rounded-2xl p-6"
+              style={
+                isVerified
+                  ? { background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)" }
+                  : { background: "linear-gradient(135deg,rgba(139,92,246,0.10) 0%,rgba(34,211,238,0.06) 100%)", border: "1px solid rgba(139,92,246,0.25)" }
+              }
+            >
+              {/* Decorative background icon */}
+              {!isVerified && (
+                <div className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 text-[96px] opacity-[0.04] select-none">🛡️</div>
+              )}
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+                <div className="flex items-start gap-4">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={
+                      isVerified
+                        ? { background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)" }
+                        : { background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)" }
+                    }
+                  >
+                    {isVerified
+                      ? <ShieldCheck size={22} className="text-emerald-400" />
+                      : <ShieldAlert size={22} className="text-violet-400" />}
+                  </div>
+
+                  <div>
+                    <p className={`text-base font-bold ${isVerified ? "text-emerald-300" : "text-white"}`}>
+                      {isVerified ? "Identity Verified" : "Verify Your Identity"}
+                    </p>
+                    <p className="text-sm text-slate-400 mt-0.5 max-w-lg">
+                      {isVerified
+                        ? "Your FHE on-chain permit is active. Age and jurisdiction were checked on ciphertext — your raw values were never revealed."
+                        : "Submit encrypted age & jurisdiction. The contract verifies both conditions fully on ciphertext — no data ever leaves your browser in plaintext."}
+                    </p>
+
+                    {/* 2-step pill row — only when not yet verified */}
+                    {!isVerified && (
+                      <div className="flex items-center gap-2 mt-3 flex-wrap">
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-violet-300 rounded-full px-3 py-1"
+                          style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.25)" }}>
+                          <span className="w-4 h-4 rounded-full bg-violet-500 text-white flex items-center justify-center text-[10px] font-bold">1</span>
+                          Encrypt &amp; Submit
+                        </span>
+                        <span className="text-slate-700 text-xs">→</span>
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-slate-400 rounded-full px-3 py-1"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                          <span className="w-4 h-4 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center text-[10px] font-bold">2</span>
+                          Reveal &amp; Claim
+                        </span>
+                        <span className="text-xs text-slate-600 ml-1">· two-step · no raw data on-chain</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {!isVerified ? (
+                  <button
+                    onClick={() => setShowKYC(true)}
+                    className="btn-primary flex-shrink-0 flex items-center gap-2"
+                  >
+                    <ShieldCheck size={15} /> Get Verified
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-emerald-400 font-semibold flex-shrink-0">
+                    <ShieldCheck size={16} /> Verified
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.section>
         )}
 
         {/* Decision Requests */}
-        <section className="mt-4">
+        <section className="mt-16">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-bold text-white">Decision Requests</h2>

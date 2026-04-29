@@ -84,7 +84,7 @@ export function useCreateRound() {
       wInnovation: number,
     ) => {
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
+      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
 
       await writeContractAsync({
         address: BLIND_REVIEW_ADDRESS,
@@ -112,7 +112,7 @@ export function useAddProposal() {
   const addProposal = useCallback(
     async (roundId: bigint, title: string, summary: string) => {
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
+      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
 
       await writeContractAsync({
         address: BLIND_REVIEW_ADDRESS,
@@ -153,7 +153,7 @@ export function useSubmitReview() {
         await encryptProposal(impact, feasibility, innovation);
 
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
+      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
 
       await writeContractAsync({
         address: BLIND_REVIEW_ADDRESS,
@@ -189,7 +189,7 @@ export function useFinalizeRound() {
   const finalizeRound = useCallback(
     async (roundId: bigint, winnerProposalId: bigint) => {
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
+      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
 
       await writeContractAsync({
         address: BLIND_REVIEW_ADDRESS,
