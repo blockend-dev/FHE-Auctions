@@ -71,3 +71,27 @@ task('deploy-blind-review', 'Deploy the BlindReview contract to the selected net
 
 	return BlindReviewAddress
 })
+
+task('deploy-identity-gate', 'Deploy the IdentityGate contract to the selected network').setAction(async (_, hre: HardhatRuntimeEnvironment) => {
+	const { ethers, network } = hre
+	const MIN_AGE = 18n;
+
+	console.log(`Deploying IdentityGate to ${network.name}...`)
+
+	// Get the deployer account
+	const [deployer] = await ethers.getSigners()
+	console.log(`Deploying with account: ${deployer.address}`)
+
+	// Deploy the contract
+	const IdentityGate = await ethers.getContractFactory('IdentityGate')
+	const identityGate = await IdentityGate.deploy(MIN_AGE)
+	await identityGate.waitForDeployment()
+
+	const IdentityGateAddress = await identityGate.getAddress()
+	console.log(`IdentityGate deployed to: ${IdentityGateAddress}`)
+
+	// Save the deployment
+	saveDeployment(network.name, 'IdentityGate', IdentityGateAddress)
+
+	return IdentityGateAddress
+})
