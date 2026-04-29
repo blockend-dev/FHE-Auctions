@@ -69,7 +69,7 @@ export function useSubmitKYC() {
       const { encAge, encJurisdiction } = await encryptKYC(age, jurisdiction);
 
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
+      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
 
       await writeContractAsync({
         address: IDENTITY_GATE_ADDRESS,
@@ -104,16 +104,16 @@ export function useClaimVerified() {
       setError(null);
       // Decrypt the KYC result stored on-chain using a CoFHE self permit
       const result = await decrypt(ctHash);
-      if (result !== 1n) throw new Error("KYC conditions not met — age < 18 or restricted jurisdiction.");
+      if (result !== BigInt(1)) throw new Error("KYC conditions not met — age < 18 or restricted jurisdiction.");
 
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
+      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
 
       await writeContractAsync({
         address: IDENTITY_GATE_ADDRESS,
         abi: IDENTITY_GATE_ABI,
         functionName: "claimVerified",
-        args: [1n],
+        args: [BigInt(1)],
         maxFeePerGas,
         maxPriorityFeePerGas: fees.maxPriorityFeePerGas ?? BigInt(1_500_000),
       });

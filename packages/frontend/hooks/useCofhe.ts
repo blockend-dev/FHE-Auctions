@@ -54,7 +54,7 @@ export function useCofheClient() {
 
         const { WagmiAdapter } = await import("@cofhe/sdk/adapters");
         const { publicClient: pc, walletClient: wc } = await WagmiAdapter(
-          walletClient,
+          walletClient as any,
           publicClient as any
         );
         await cofhe.connect(pc as any, wc as any);
