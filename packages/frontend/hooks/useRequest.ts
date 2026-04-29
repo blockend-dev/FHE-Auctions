@@ -70,7 +70,7 @@ export function useSubmitProposal() {
       setError(null);
       const { encPrice, encQuality, encDelivery } = await encryptProposal(price, quality, delivery);
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
+      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
 
       await writeContractAsync({
         address: VENDOR_ADDRESS,
@@ -106,7 +106,7 @@ export function useCreateRequest() {
   const createRequest = useCallback(
     async (title: string, durationHours: number, depositEth: string, wPrice: number, wQuality: number, wDelivery: number) => {
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
+      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
 
       await writeContractAsync({
         address: VENDOR_ADDRESS,
@@ -134,7 +134,7 @@ export function useClaimDeposit() {
   const claimDeposit = useCallback(
     async (requestId: bigint) => {
       const fees = await publicClient!.estimateFeesPerGas();
-      const maxFeePerGas = fees.maxFeePerGas! * BigInt(4) / BigInt(3);
+      const maxFeePerGas = fees.maxFeePerGas! * 4n / 3n;
 
       await writeContractAsync({
         address: VENDOR_ADDRESS,

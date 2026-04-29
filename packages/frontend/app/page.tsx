@@ -4,10 +4,11 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, ExternalLink, Send, FileText } from "lucide-react";
+import { Plus, ExternalLink, Send, FileText, ShieldCheck, ShieldAlert } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useRequestCount } from "../hooks/useRequest";
 import { useRoundCount } from "../hooks/useBlindReview";
+import { useIsVerified } from "../hooks/useIdentityGate";
 import { RequestCard } from "../components/RequestCard";
 import dynamicImport from "next/dynamic";
 import { WalletButton } from "../components/WalletButton";
@@ -33,14 +34,20 @@ const ReviewRoundCard = dynamicImport(
   () => import("../components/ReviewRoundCard").then(mod => mod.ReviewRoundCard),
   { ssr: false }
 );
+const KYCModal = dynamicImport(
+  () => import("../components/KYCModal").then(mod => mod.KYCModal),
+  { ssr: false }
+);
 
 export default function Home() {
   const { isConnected, address } = useAccount();
   const { data: count, refetch } = useRequestCount();
   const { data: roundCount, refetch: refetchRounds } = useRoundCount();
+  const { data: isVerified, refetch: refetchVerified } = useIsVerified(address);
   const [showCreate,      setShowCreate]      = useState(false);
   const [showSendPayment, setShowSendPayment] = useState(false);
   const [showCreateRound, setShowCreateRound] = useState(false);
+  const [showKYC,         setShowKYC]         = useState(false);
 
   const requestIds = count
     ? Array.from({ length: Number(count) }, (_, i) => BigInt(i)).reverse()
@@ -78,6 +85,43 @@ export default function Home() {
 
       <main className="max-w-6xl mx-auto px-4 pb-24">
         <HeroSection />
+
+        {/* Identity Gate banner */}
+        {isConnected && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            className="mt-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4"
+            style={
+              isVerified
+                ? { background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)" }
+                : { background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.2)" }
+            }
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              {isVerified
+                ? <ShieldCheck size={18} className="text-emerald-400 flex-shrink-0" />
+                : <ShieldAlert size={18} className="text-violet-400 flex-shrink-0" />}
+              <div className="min-w-0">
+                <p className={`text-sm font-semibold ${isVerified ? "text-emerald-300" : "text-violet-300"}`}>
+                  {isVerified ? "Identity Verified" : "Identity Not Verified"}
+                </p>
+                <p className="text-xs text-slate-500 truncate">
+                  {isVerified
+                    ? "Your FHE-encrypted on-chain permit is active — you can submit proposals."
+                    : "Verify your age & jurisdiction via FHE to unlock proposal submission."}
+                </p>
+              </div>
+            </div>
+            {!isVerified && (
+              <button
+                onClick={() => setShowKYC(true)}
+                className="btn-primary flex-shrink-0 flex items-center gap-2 text-sm"
+              >
+                <ShieldCheck size={14} /> Get Verified
+              </button>
+            )}
+          </motion.div>
+        )}
 
         {/* Decision Requests */}
         <section className="mt-4">
@@ -192,6 +236,7 @@ export default function Home() {
       {showCreate && <CreateRequestModal onClose={() => setShowCreate(false)} onCreated={() => refetch()} />}
       {showSendPayment && <SendPaymentModal onClose={() => setShowSendPayment(false)} />}
       {showCreateRound && <CreateRoundModal onClose={() => setShowCreateRound(false)} onCreated={() => { refetchRounds(); setShowCreateRound(false); }} />}
+      {showKYC && <KYCModal onClose={() => setShowKYC(false)} onVerified={() => refetchVerified()} />}
     </div>
   );
 }

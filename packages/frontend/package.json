@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@cofhe/sdk": "latest",
+    "@cofhe/sdk": "^0.5.1",
     "@tanstack/react-query": "^5",
     "clsx": "^2",
     "framer-motion": "^11",

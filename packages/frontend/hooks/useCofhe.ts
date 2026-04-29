@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useWalletClient, usePublicClient } from "wagmi";
-import { Encryptable, EncryptStep } from "@cofhe/sdk";
+import { Encryptable, EncryptStep, FheTypes } from "@cofhe/sdk";
 import { getCofheClient } from "../lib/cofhe";
 import type { CofheClient } from "@cofhe/sdk";
 
@@ -168,4 +168,89 @@ export function useEncryptProposal() {
   );
 
   return { encryptProposal, steps, isEncrypting, resetSteps };
+}
+
+// ── Two-value encryption for KYC (age + jurisdiction flag) ────────────────────
+
+export function useEncryptKYC() {
+  const client = useCofheClient();
+  const [steps, setSteps] = useState<EncryptionStep[]>(
+    STEP_ORDER.map((s) => ({ step: s, status: "idle" }))
+  );
+  const [isEncrypting, setIsEncrypting] = useState(false);
+
+  const resetSteps = useCallback(() => {
+    setSteps(STEP_ORDER.map((s) => ({ step: s, status: "idle" })));
+  }, []);
+
+  const encryptKYC = useCallback(
+    async (age: number, jurisdiction: number) => {
+      if (!client) throw new Error("CoFHE client not ready");
+      setIsEncrypting(true);
+      resetSteps();
+
+      try {
+        const [encAge, encJurisdiction] = await client
+          .encryptInputs([
+            Encryptable.uint128(BigInt(age)),
+            Encryptable.uint128(BigInt(jurisdiction)),
+          ])
+          .onStep((step, ctx) => {
+            setSteps((prev) =>
+              prev.map((s) => {
+                if (s.step !== step) return s;
+                if (ctx?.isStart) return { ...s, status: "active" };
+                if (ctx?.isEnd) return { ...s, status: "done", duration: ctx.duration };
+                return s;
+              })
+            );
+          })
+          .execute();
+
+        return { encAge, encJurisdiction };
+      } finally {
+        setIsEncrypting(false);
+      }
+    },
+    [client, resetSteps]
+  );
+
+  return { encryptKYC, steps, isEncrypting, resetSteps };
+}
+
+// ── Decrypt an encrypted uint128 handle client-side using a self permit ────────
+
+export function useDecryptForView() {
+  const client = useCofheClient();
+  const [value, setValue] = useState<bigint | null>(null);
+  const [isDecrypting, setIsDecrypting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const decrypt = useCallback(
+    async (ctHash: bigint) => {
+      if (!client) throw new Error("CoFHE client not ready");
+      setIsDecrypting(true);
+      setError(null);
+      setValue(null);
+      try {
+        await client.permits.getOrCreateSelfPermit();
+        const plaintext = await client
+          .decryptForView(ctHash, FheTypes.Uint128)
+          .execute();
+        setValue(plaintext as bigint);
+        return plaintext as bigint;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        setError(msg.slice(0, 200));
+        throw e;
+      } finally {
+        setIsDecrypting(false);
+      }
+    },
+    [client],
+  );
+
+  const reset = useCallback(() => { setValue(null); setError(null); }, []);
+
+  return { decrypt, value, isDecrypting, error, reset };
 }

@@ -1,5 +1,4 @@
-// CoFHE client — browser-only (IndexedDB + WASM)
-// Lazy singleton so it is never imported during SSR
+
 
 let _client: import("@cofhe/sdk").CofheClient | null = null;
 

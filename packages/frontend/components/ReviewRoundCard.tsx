@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccount } from "wagmi";
 import {
   Clock, ChevronDown, ChevronUp, MessageSquare, Lock,
-  Trophy, Plus, CheckCircle2, User,
+  Trophy, Plus, CheckCircle2, User, Eye, Loader2,
 } from "lucide-react";
 import {
   useRoundInfo, useProposalInfo, useHasReviewedProposal, useFinalizeRound,
+  useProposalScoreHandle,
 } from "../hooks/useBlindReview";
+import { useDecryptForView } from "../hooks/useCofhe";
 import dynamic from "next/dynamic";
 import clsx from "clsx";
 
@@ -57,20 +59,18 @@ function WeightPill({ label, value, color }: { label: string; value: number; col
 // ── Single proposal row (reads its own data) ──────────────────────────────────
 
 function ProposalRow({
-  roundId, proposalId, weights, isActive, winnerProposalId, finalized, onReviewDone,
+  roundId, proposalId, isActive, winnerProposalId, finalized, onReview,
 }: {
   roundId: bigint;
   proposalId: bigint;
-  weights: { wImpact: number; wFeasibility: number; wInnovation: number };
   isActive: boolean;
   winnerProposalId: bigint;
   finalized: boolean;
-  onReviewDone: () => void;
+  onReview: (proposalId: bigint, title: string) => void;
 }) {
   const { address } = useAccount();
-  const { data: info, refetch } = useProposalInfo(roundId, proposalId);
-  const { data: reviewed }      = useHasReviewedProposal(roundId, proposalId, address);
-  const [showReview, setShowReview] = useState(false);
+  const { data: info } = useProposalInfo(roundId, proposalId);
+  const { data: reviewed } = useHasReviewedProposal(roundId, proposalId, address);
 
   if (!info) return <div className="h-14 shimmer rounded-xl" />;
 
@@ -78,63 +78,46 @@ function ProposalRow({
   const isWinner = finalized && proposalId === winnerProposalId;
 
   return (
-    <>
-      <div
-        className={clsx(
-          "rounded-xl px-4 py-3 flex items-start gap-3",
-          isWinner
-            ? "border"
-            : "border",
-        )}
-        style={
-          isWinner
-            ? { background: "rgba(16,185,129,0.06)", borderColor: "rgba(16,185,129,0.25)" }
-            : { background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)" }
-        }
-      >
-        {/* Left */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            {isWinner && <Trophy size={13} className="text-emerald-400 flex-shrink-0" />}
-            <p className="text-sm font-semibold text-white truncate">{title}</p>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{summary}</p>
-          <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-600">
-            <span className="flex items-center gap-1"><User size={10} />{submitter.slice(0, 6)}…{submitter.slice(-4)}</span>
-            <span className="flex items-center gap-1"><MessageSquare size={10} />{Number(reviewCount)} review{Number(reviewCount) !== 1 ? "s" : ""}</span>
-          </div>
+    <div
+      className="rounded-xl px-4 py-3 flex items-start gap-3 border"
+      style={
+        isWinner
+          ? { background: "rgba(16,185,129,0.06)", borderColor: "rgba(16,185,129,0.25)" }
+          : { background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)" }
+      }
+    >
+      {/* Left */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          {isWinner && <Trophy size={13} className="text-emerald-400 flex-shrink-0" />}
+          <p className="text-sm font-semibold text-white truncate">{title}</p>
         </div>
-
-        {/* Actions */}
-        <div className="flex-shrink-0">
-          {isWinner ? (
-            <span className="text-xs text-emerald-400 font-semibold">Winner</span>
-          ) : isActive && address && !reviewed ? (
-            <button
-              onClick={() => setShowReview(true)}
-              className="flex items-center gap-1.5 text-xs font-medium rounded-lg px-3 py-1.5 transition-all"
-              style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}
-            >
-              <Lock size={11} /> Review
-            </button>
-          ) : reviewed ? (
-            <span className="flex items-center gap-1 text-xs text-violet-400 font-medium">
-              <CheckCircle2 size={11} /> Reviewed
-            </span>
-          ) : null}
+        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{summary}</p>
+        <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-600">
+          <span className="flex items-center gap-1"><User size={10} />{submitter.slice(0, 6)}…{submitter.slice(-4)}</span>
+          <span className="flex items-center gap-1"><MessageSquare size={10} />{Number(reviewCount)} review{Number(reviewCount) !== 1 ? "s" : ""}</span>
         </div>
       </div>
 
-      {showReview && (
-        <ReviewModal
-          roundId={roundId}
-          proposalId={proposalId}
-          proposalTitle={title}
-          weights={weights}
-          onClose={() => { setShowReview(false); refetch(); onReviewDone(); }}
-        />
-      )}
-    </>
+      {/* Actions */}
+      <div className="flex-shrink-0">
+        {isWinner ? (
+          <span className="text-xs text-emerald-400 font-semibold">Winner</span>
+        ) : isActive && address && !reviewed ? (
+          <button
+            onClick={() => onReview(proposalId, title)}
+            className="flex items-center gap-1.5 text-xs font-medium rounded-lg px-3 py-1.5 transition-all"
+            style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.25)", color: "#a78bfa" }}
+          >
+            <Lock size={11} /> Review
+          </button>
+        ) : reviewed ? (
+          <span className="flex items-center gap-1 text-xs text-violet-400 font-medium">
+            <CheckCircle2 size={11} /> Reviewed
+          </span>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -150,11 +133,28 @@ export function ReviewRoundCard({ roundId, index }: Props) {
   const { data: info, refetch } = useRoundInfo(roundId);
   const { finalizeRound, isPending: isFinalizing } = useFinalizeRound();
 
-  const [expanded,      setExpanded]      = useState(false);
+  const [expanded,        setExpanded]        = useState(false);
   const [showAddProposal, setShowAddProposal] = useState(false);
-  const [winnerInput,   setWinnerInput]   = useState("");
-  const [showFinalize,  setShowFinalize]  = useState(false);
-  const [finalizeError, setFinalizeError] = useState("");
+  const [winnerInput,     setWinnerInput]     = useState("");
+  const [showFinalize,    setShowFinalize]    = useState(false);
+  const [finalizeError,   setFinalizeError]   = useState("");
+  const [revealEnabled,   setRevealEnabled]   = useState(false);
+  // Lifted out of ProposalRow so ReviewModal renders outside the motion.div
+  // (Framer Motion transforms break position:fixed children)
+  const [reviewTarget, setReviewTarget] = useState<{ proposalId: bigint; title: string } | null>(null);
+
+  // Decrypt-for-view — reveal winner score client-side with a permit
+  const winnerIdForReveal = info ? (info[8] as bigint) : 0n;
+  const { data: scoreHandle } = useProposalScoreHandle(roundId, winnerIdForReveal, revealEnabled);
+  const { decrypt, value: revealedScore, isDecrypting, error: revealError, reset: resetReveal } = useDecryptForView();
+  const decryptTriggered = useRef(false);
+
+  useEffect(() => {
+    if (revealEnabled && scoreHandle != null && !decryptTriggered.current && !isDecrypting) {
+      decryptTriggered.current = true;
+      decrypt(scoreHandle as bigint).catch(() => {});
+    }
+  }, [revealEnabled, scoreHandle, isDecrypting, decrypt]);
 
   // getRound returns: [organizer, title, description, deadline, wImpact, wFeasibility, wInnovation, proposalCount, winnerProposalId, finalized]
   const deadline = info ? Number(info[3]) : 0;
@@ -257,13 +257,44 @@ export function ReviewRoundCard({ roundId, index }: Props) {
         {/* Winner banner */}
         {finalized && (
           <div
-            className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs"
+            className="rounded-xl px-3 py-2.5 text-xs space-y-2"
             style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}
           >
-            <Trophy size={13} className="text-emerald-400 flex-shrink-0" />
-            <span className="text-slate-300">
-              Winner: <span className="text-emerald-400 font-semibold">Proposal #{Number(winnerProposalId)}</span>
-            </span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Trophy size={13} className="text-emerald-400 flex-shrink-0" />
+                <span className="text-slate-300">
+                  Winner: <span className="text-emerald-400 font-semibold">Proposal #{Number(winnerProposalId)}</span>
+                </span>
+              </div>
+              {isOrganizer && revealedScore === null && (
+                <button
+                  onClick={() => {
+                    resetReveal();
+                    decryptTriggered.current = false;
+                    setRevealEnabled(true);
+                  }}
+                  disabled={isDecrypting}
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all"
+                  style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "#34d399" }}
+                >
+                  {isDecrypting
+                    ? <><Loader2 size={11} className="animate-spin" /> Decrypting…</>
+                    : <><Eye size={11} /> Reveal Score</>}
+                </button>
+              )}
+            </div>
+            {revealedScore !== null && (
+              <div className="flex items-center gap-2 pt-1 border-t border-emerald-500/10">
+                <Lock size={11} className="text-emerald-400" />
+                <span className="text-slate-400">Decrypted winner score:</span>
+                <span className="font-bold text-emerald-300">{revealedScore.toString()}</span>
+                <span className="text-slate-600 ml-auto">(via FHE permit)</span>
+              </div>
+            )}
+            {revealError && (
+              <p className="text-rose-400 pt-1 border-t border-rose-500/10">{revealError}</p>
+            )}
           </div>
         )}
 
@@ -345,11 +376,10 @@ export function ReviewRoundCard({ roundId, index }: Props) {
                     key={pid.toString()}
                     roundId={roundId}
                     proposalId={pid}
-                    weights={weights}
                     isActive={isLive}
                     winnerProposalId={winnerProposalId}
                     finalized={finalized}
-                    onReviewDone={() => refetch()}
+                    onReview={(id, title) => setReviewTarget({ proposalId: id, title })}
                   />
                 ))
               )}
@@ -364,6 +394,17 @@ export function ReviewRoundCard({ roundId, index }: Props) {
           roundTitle={title}
           onClose={() => setShowAddProposal(false)}
           onAdded={() => { setShowAddProposal(false); refetch(); setExpanded(true); }}
+        />
+      )}
+
+      {/* Rendered outside motion.div so position:fixed works correctly */}
+      {reviewTarget && (
+        <ReviewModal
+          roundId={roundId}
+          proposalId={reviewTarget.proposalId}
+          proposalTitle={reviewTarget.title}
+          weights={weights}
+          onClose={() => { setReviewTarget(null); refetch(); }}
         />
       )}
     </>
